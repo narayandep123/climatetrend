@@ -22,6 +22,20 @@ const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || ''
 
 const buildApiUrl = (path) => `${API_BASE_URL}${path}`
 
+const parseJsonResponse = async (response) => {
+  const text = await response.text()
+
+  if (!text) {
+    throw new Error('The server returned an empty response.')
+  }
+
+  try {
+    return JSON.parse(text)
+  } catch {
+    throw new Error('The server returned an unexpected response. The climate data source may be temporarily unavailable.')
+  }
+}
+
 const defaultMarkerIcon = L.icon({
   iconUrl: 'https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon.png',
   shadowUrl: 'https://unpkg.com/leaflet@1.9.4/dist/images/marker-shadow.png',
@@ -73,7 +87,7 @@ function App() {
     const bootstrapAnalysis = async () => {
       try {
         const response = await fetch(buildApiUrl('/api/default-regions'))
-        const payload = await response.json()
+        const payload = await parseJsonResponse(response)
         const nextRegions = payload.regions ?? []
         setRegions(nextRegions)
 
@@ -86,7 +100,7 @@ function App() {
         setLongitude(String(defaultRegion.longitude))
         await analyzeHazard(defaultRegion.name, defaultRegion.latitude, defaultRegion.longitude, 1990, 2020, hazard)
       } catch (loadError) {
-        setError('The region catalog could not be loaded.')
+        setError(loadError instanceof Error ? loadError.message : 'The region catalog could not be loaded.')
         console.error(loadError)
       }
     }
@@ -116,7 +130,7 @@ function App() {
       })
 
       const response = await fetch(buildApiUrl(`/api/analysis?${params.toString()}`))
-      const payload = await response.json()
+      const payload = await parseJsonResponse(response)
 
       if (!response.ok) {
         throw new Error(payload.detail || 'Unknown server error')
@@ -139,7 +153,7 @@ function App() {
 
     try {
       const response = await fetch(buildApiUrl(`/api/search-regions?query=${encodeURIComponent(searchText)}`))
-      const payload = await response.json()
+      const payload = await parseJsonResponse(response)
       const nextRegions = payload.regions ?? []
       setRegions(nextRegions)
       if (nextRegions.length > 0) {

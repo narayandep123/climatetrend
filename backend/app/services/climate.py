@@ -44,7 +44,7 @@ def search_regions(query: str) -> List[Dict[str, Any]]:
         )
         response.raise_for_status()
         payload = response.json()
-    except requests.RequestException:
+    except (requests.RequestException, ValueError, TypeError):
         return []
 
     results: List[Dict[str, Any]] = []
@@ -62,22 +62,31 @@ def search_regions(query: str) -> List[Dict[str, Any]]:
 
 
 def fetch_daily_temperature_series(latitude: float, longitude: float, start_year: int, end_year: int) -> List[Dict[str, Any]]:
-    response = requests.get(
-        ARCHIVE_URL,
-        params={
-            "latitude": latitude,
-            "longitude": longitude,
-            "start_date": f"{start_year}-01-01",
-            "end_date": f"{end_year}-12-31",
-            "daily": "temperature_2m_max",
-            "timezone": "auto",
-        },
-        timeout=30,
-    )
-    response.raise_for_status()
-    payload = response.json()
+    try:
+        response = requests.get(
+            ARCHIVE_URL,
+            params={
+                "latitude": latitude,
+                "longitude": longitude,
+                "start_date": f"{start_year}-01-01",
+                "end_date": f"{end_year}-12-31",
+                "daily": "temperature_2m_max",
+                "timezone": "auto",
+            },
+            timeout=30,
+        )
+        response.raise_for_status()
+        payload = response.json()
+    except (requests.RequestException, ValueError, TypeError):
+        return []
+
+    if not isinstance(payload, dict):
+        return []
 
     daily = payload.get("daily", {})
+    if not isinstance(daily, dict):
+        return []
+
     dates = daily.get("time", [])
     temperatures = daily.get("temperature_2m_max", [])
 
@@ -168,22 +177,31 @@ def detect_heatwaves(records: List[Dict[str, Any]], threshold_c: float) -> List[
 
 
 def fetch_daily_precipitation_series(latitude: float, longitude: float, start_year: int, end_year: int) -> List[Dict[str, Any]]:
-    response = requests.get(
-        ARCHIVE_URL,
-        params={
-            "latitude": latitude,
-            "longitude": longitude,
-            "start_date": f"{start_year}-01-01",
-            "end_date": f"{end_year}-12-31",
-            "daily": "precipitation_sum",
-            "timezone": "auto",
-        },
-        timeout=30,
-    )
-    response.raise_for_status()
-    payload = response.json()
+    try:
+        response = requests.get(
+            ARCHIVE_URL,
+            params={
+                "latitude": latitude,
+                "longitude": longitude,
+                "start_date": f"{start_year}-01-01",
+                "end_date": f"{end_year}-12-31",
+                "daily": "precipitation_sum",
+                "timezone": "auto",
+            },
+            timeout=30,
+        )
+        response.raise_for_status()
+        payload = response.json()
+    except (requests.RequestException, ValueError, TypeError):
+        return []
+
+    if not isinstance(payload, dict):
+        return []
 
     daily = payload.get("daily", {})
+    if not isinstance(daily, dict):
+        return []
+
     dates = daily.get("time", [])
     precipitation = daily.get("precipitation_sum", [])
 

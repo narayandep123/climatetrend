@@ -59,12 +59,19 @@ def analysis(request):
         latitude = match['latitude']
         longitude = match['longitude']
 
-    result = analyze_climate_hazard(
-        hazard=hazard,
-        region_name=region_name,
-        latitude=float(latitude),
-        longitude=float(longitude),
-        start_year=start_year,
-        end_year=end_year,
-    )
+    try:
+        result = analyze_climate_hazard(
+            hazard=hazard,
+            region_name=region_name,
+            latitude=float(latitude),
+            longitude=float(longitude),
+            start_year=start_year,
+            end_year=end_year,
+        )
+    except Exception:
+        return JsonResponse(
+            {"detail": "Climate analysis temporarily unavailable. Please try again in a moment."},
+            status=503,
+        )
+
     return JsonResponse(result)
