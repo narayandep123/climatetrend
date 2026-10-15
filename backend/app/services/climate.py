@@ -7,7 +7,6 @@ from typing import Any, Dict, List
 
 import numpy as np
 import requests
-from scipy.stats import linregress
 
 from backend.app.config import DEFAULT_REGIONS
 from backend.app.db import get_database, now_iso
@@ -117,7 +116,7 @@ def _calculate_regression_trend(yearly_counts: List[Dict[str, Any]]) -> Dict[str
 
     x = np.array([point["year"] for point in yearly_counts], dtype=float)
     y = np.array([point["event_count"] for point in yearly_counts], dtype=float)
-    slope, _, _, _, _ = linregress(x, y)
+    slope = float(np.polyfit(x, y, 1)[0])
     per_decade = float(slope * 10)
     if slope > 0:
         label = "Increasing trend"
@@ -125,7 +124,7 @@ def _calculate_regression_trend(yearly_counts: List[Dict[str, Any]]) -> Dict[str
         label = "Declining trend"
     else:
         label = "Stable trend"
-    return {"slope": float(slope), "per_decade": per_decade, "trend_label": label}
+    return {"slope": slope, "per_decade": per_decade, "trend_label": label}
 
 
 def detect_heatwaves(records: List[Dict[str, Any]], threshold_c: float) -> List[Dict[str, Any]]:
