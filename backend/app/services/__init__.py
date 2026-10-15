@@ -1,0 +1,1 @@
+"""Climate hazard service package."""

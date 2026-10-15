@@ -1,0 +1,10 @@
+{
+  "name": "ch-trend-analyzer",
+  "private": true,
+  "version": "1.0.0",
+  "scripts": {
+    "frontend": "npm --prefix frontend run dev -- --host 0.0.0.0",
+    "backend": ". .venv/bin/activate && python backend/manage.py runserver 0.0.0.0:8000",
+    "dev": "npm run frontend"
+  }
+}
