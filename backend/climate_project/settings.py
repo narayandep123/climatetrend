@@ -4,8 +4,24 @@ import os
 BASE_DIR = Path(__file__).resolve().parent.parent
 
 SECRET_KEY = os.getenv('DJANGO_SECRET_KEY', 'dev-secret-key-do-not-use-in-production')
-DEBUG = True
+DEBUG = os.getenv('DEBUG', 'True').lower() in {'1', 'true', 'yes'}
 ALLOWED_HOSTS = ['*']
+
+CORS_ALLOW_ALL_ORIGINS = os.getenv('CORS_ALLOW_ALL_ORIGINS', 'False').lower() in {'1', 'true', 'yes'}
+CORS_ALLOWED_ORIGINS = [
+    origin.strip()
+    for origin in os.getenv(
+        'CORS_ALLOWED_ORIGINS',
+        'http://localhost:5173,https://localhost:5173,https://climatetrend-weld.vercel.app',
+    ).split(',')
+    if origin.strip()
+]
+CORS_ALLOWED_ORIGIN_REGEXES = [
+    r'^https://.*\.vercel\.app$',
+]
+CSRF_TRUSTED_ORIGINS = [
+    'https://climatetrend-weld.vercel.app',
+]
 
 INSTALLED_APPS = [
     'django.contrib.admin',
@@ -14,11 +30,13 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
+    'corsheaders',
     'backend.app',
 ]
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
+    'corsheaders.middleware.CorsMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
