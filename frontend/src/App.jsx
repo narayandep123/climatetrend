@@ -18,6 +18,9 @@ import L from 'leaflet'
 import './App.css'
 
 const yearRange = Array.from({ length: 31 }, (_, index) => 1990 + index)
+const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || ''
+
+const buildApiUrl = (path) => `${API_BASE_URL}${path}`
 
 const defaultMarkerIcon = L.icon({
   iconUrl: 'https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon.png',
@@ -69,7 +72,7 @@ function App() {
   useEffect(() => {
     const bootstrapAnalysis = async () => {
       try {
-        const response = await fetch('/api/default-regions')
+        const response = await fetch(buildApiUrl('/api/default-regions'))
         const payload = await response.json()
         const nextRegions = payload.regions ?? []
         setRegions(nextRegions)
@@ -112,7 +115,7 @@ function App() {
         hazard: selectedHazard,
       })
 
-      const response = await fetch(`/api/analysis?${params.toString()}`)
+      const response = await fetch(buildApiUrl(`/api/analysis?${params.toString()}`))
       const payload = await response.json()
 
       if (!response.ok) {
@@ -135,7 +138,7 @@ function App() {
     }
 
     try {
-      const response = await fetch(`/api/search-regions?query=${encodeURIComponent(searchText)}`)
+      const response = await fetch(buildApiUrl(`/api/search-regions?query=${encodeURIComponent(searchText)}`))
       const payload = await response.json()
       const nextRegions = payload.regions ?? []
       setRegions(nextRegions)
